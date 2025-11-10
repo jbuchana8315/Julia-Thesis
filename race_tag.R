@@ -23,6 +23,8 @@ setwd("E:/Users/Processed Data/")
 load("Voter Files/LA Files/la_voterfile_2022.rData") 
 
 # load the 2020 Census data
+# use the get_census_data function in wru to save this file
+# to the remote machine 
 load("Census Data/caCensusData_2020.rdata")
 
 ###########################################
@@ -31,7 +33,6 @@ load("Census Data/caCensusData_2020.rdata")
 
 # add state and county to the file
 laData$state <- 'CA'
-laData$county <- '037'
 
 # rename columns to match wru names
 names(laData)[names(laData) == "Residence_Addresses_CensusBlock"] <- 'block'
@@ -50,23 +51,6 @@ laData <- predict_race(laData, names.to.use = 'surname, first, middle', skip_bad
 ##########################################
 ##           simple analytics           ##
 ##########################################
-
-# which blocks were matched?
-laCityBlocks <- unique(laData[,c('county', 'tract', 'block')])
-laCityBlocks$tract <- as.character(laCityBlocks$tract)
-laCityBlocks$block <- as.character(laCityBlocks$block)
-
-laCityBlocks <- left_join(laCityBlocks, caData_2020$CA$block, by = c('county', 'tract', 'block'))
-
-# what are the city racial distributions?
-laRacialDistributions <- c('white' = sum(laCityBlocks$P12I_001N),
-                           'black' = sum(laCityBlocks$P12J_001N),
-                           'hispanic' = sum(laCityBlocks$P12H_001N),
-                           'aapi' = sum(laCityBlocks$P12L_001N + laCityBlocks$P12M_001N),
-                           'other' = sum(laCityBlocks$P12K_001N + laCityBlocks$P12N_001N + 
-                                           laCityBlocks$P12O_001N))
-laRacialDistributions
-laRacialDistributions/sum(laRacialDistributions)
 
 # what are the voter file racial distributions?
 vfRacialDistributions <- laData %>%
