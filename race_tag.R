@@ -45,8 +45,8 @@ names(laData)[names(laData) == "Voters_MiddleName"] <- 'middle'
 names(laData) <- gsub('c_', 'c.', names(laData))
 
 # run bisg at the tract level 
-laData <- predict_race(laData, names.to.use = 'surname, first, middle', skip_bad_geos = TRUE, model = 'BISG',
-                       census.geo = 'block', census.data = caData_2020, year = "2020")
+laData <- predict_race(laData, names.to.use = 'surname, first, middle', skip_bad_geos = TRUE, 
+                       census.geo = 'tract', census.data = caData_2020, year = "2010")
 
 ##########################################
 ##           simple analytics           ##
