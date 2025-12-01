@@ -5,6 +5,8 @@ rm(list = ls())
 library(wru)
 library(tidyverse)
 
+source("~/GitHub/Julia-Thesis/county_helpers.R")
+
 ##########################################
 ##    this code demonstrates how to race tag 
 ##    a *new* voter file using the wru package. 
@@ -45,8 +47,17 @@ names(vf)[names(vf) == "Voters_LastName"] <- 'surname'
 names(vf)[names(vf) == "Voters_FirstName"] <- 'first'
 names(vf)[names(vf) == "Voters_MiddleName"] <- 'middle'
 
+# map the counties to their appropriate code
+vf$county <- nc_county_fips[vf$county]
+
+# sanity check: any unmapped?
+if (any(is.na(vf$county))) {
+  warning("Some county names were not matched to FIPS codes.")
+}
+
 # run bisg at the tract level 
-vf <- predict_race(vf, names.to.use = 'surname, first, middle', skip_bad_geos = TRUE, 
+names(vf) <- gsub("c_", "c.", names(vf))
+taggedVf <- predict_race(vf, names.to.use = 'surname, first, middle', skip_bad_geos = TRUE, 
                        census.geo = 'tract', census.data = ncCensus_2010, year = "2010")
 
 ##########################################
@@ -54,25 +65,7 @@ vf <- predict_race(vf, names.to.use = 'surname, first, middle', skip_bad_geos = 
 ##########################################
 
 # what are the voter file racial distributions?
-vfRacialDistributions <- vf %>%
-  summarise(white = mean(pred.whi, na.rm = TRUE), 
-            black = mean(pred.bla, na.rm = TRUE),
-            hispanic = mean(pred.his, na.rm = TRUE), 
-            aapi = mean(pred.asi, na.rm = TRUE), 
-            other = mean(pred.oth, na.rm = TRUE))
-
-# what are the 2022 general electorate racial distributions?
-g2022RacialDistributions <- laData %>%
-  filter(!is.na(General_2022_11_08)) %>%
-  summarise(white = mean(pred.whi, na.rm = TRUE), 
-            black = mean(pred.bla, na.rm = TRUE),
-            hispanic = mean(pred.his, na.rm = TRUE), 
-            aapi = mean(pred.asi, na.rm = TRUE), 
-            other = mean(pred.oth, na.rm = TRUE))
-
-# what are the 2022 primary electorate racial distributions?
-p2022RacialDistributions <- laData %>%
-  filter(!is.na(Primary_2022_06_07)) %>%
+vfRacialDistributions <- taggedVf %>%
   summarise(white = mean(pred.whi, na.rm = TRUE), 
             black = mean(pred.bla, na.rm = TRUE),
             hispanic = mean(pred.his, na.rm = TRUE), 
