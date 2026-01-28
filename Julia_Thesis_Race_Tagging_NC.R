@@ -21,16 +21,24 @@ source("~/GitHub/Julia-Thesis/county_helpers.R")
 ##             data loading             ##
 ##########################################
 
+# constant: switch to CVAP priors?
+cvapPrior <- TRUE
+
 # set the working directory
 setwd("E:/Users/Processed Data/")
 
 # load the 2020 NC voter file
-load("Voter Files/Non-LA Files/nc_voterfile_2020.rData") 
+load("Voter Files/Non-LA Files/nc_voterfile_2020_narrow.rData") 
 
 # load the 2010 NC Census data
 # use the get_census_data function in wru to save this file
 # to the remote machine 
 load("Census Data/ncCensus_2010.rData")
+load("Census Data/ncCVAP_2010_tract.rData")
+
+if(cvapPrior) {
+  ncCensus_2010$NC$tract <- tract_priors_cvap
+}
 
 ###########################################
 ##           race tagging code           ##
@@ -71,3 +79,5 @@ vfRacialDistributions <- taggedVf %>%
             hispanic = mean(pred.his, na.rm = TRUE), 
             aapi = mean(pred.asi, na.rm = TRUE), 
             other = mean(pred.oth, na.rm = TRUE))
+
+vfRacialDistributions
