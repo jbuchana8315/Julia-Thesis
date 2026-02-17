@@ -162,8 +162,8 @@ legend(
 
 #calibration
 #calibration table for each race
-calibration_table <- function(df, prob_col, race_label) {
-  df %>%
+calibration_table <- function(df, prob_col, race_label, bin_width = 0.1) {
+  cal_df <- df %>%
     transmute(
       p = .data[[prob_col]],
       y = as.integer(true_race_5 == race_label)
@@ -185,10 +185,24 @@ calibration_table <- function(df, prob_col, race_label) {
       .groups = "drop"
     ) %>%
     filter(n > 0)
+  
+  #ECE: weighted average |pred_mean - obs_rate|
+  n_tot <- sum(cal_df$n)
+  ece <- sum((cal_df$n / n_tot) * abs(cal_df$pred_mean - cal_df$obs_rate))
+     
+  #include in plot
+  attr(cal_df, "ece") <- ece
+  cal_df
 }
 
 #calibration plotting
-plot_calibration <- function(cal_df, race_name) {
+plot_calibration <- function(cal_df, race_name, show_ece_in_title = TRUE) {
+  ece <- attr(cal_df, "ece")
+  title_txt <- if (show_ece_in_title && !is.null(ece)){
+    paste0("Calibration Plot - ", race_name, "(ECE = ", round(ece, 4), ")")
+  } else {
+    paste("Calibration Plot - ", race_name)
+  }
   ggplot(cal_df, aes(x = pred_mean, y = obs_rate)) +
     geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
     geom_line(color = "steelblue", linewidth = 1) +
@@ -197,7 +211,7 @@ plot_calibration <- function(cal_df, race_name) {
     scale_x_continuous(labels = percent_format(accuracy = 1)) +
     scale_y_continuous(labels = percent_format(accuracy = 1)) +
     labs(
-      title = paste("Calibration Plot -", race_name),
+      title = paste("Calibration Plot –", race_name),
       x = "Mean predicted probability",
       y = "Observed frequency",
       size = "Bin size"
@@ -208,25 +222,30 @@ plot_calibration <- function(cal_df, race_name) {
 #5 individual race plots
 # WHITE
 cal_white <- calibration_table(taggedvf, "pred.whi", "WHITE")
+cat("ECE (White):", round(attr(cal_white, "ece"), 6), "\n")
 p_white <- plot_calibration(cal_white, "White")
 print(p_white)
 
 # BLACK
 cal_black <- calibration_table(taggedvf, "pred.bla", "BLACK")
+cat("ECE (Black):", round(attr(cal_black, "ece"), 6), "\n")
 p_black <- plot_calibration(cal_black, "Black")
 print(p_black)
 
 # HISPANIC
 cal_hisp <- calibration_table(taggedvf, "pred.his", "HISPANIC")
+cat("ECE (Hispanic):", round(attr(cal_hisp, "ece"), 6), "\n")
 p_hisp <- plot_calibration(cal_hisp, "Hispanic")
 print(p_hisp)
 
 # ASIAN
 cal_asian <- calibration_table(taggedvf, "pred.asi", "ASIAN")
+cat("ECE (Asian):", round(attr(cal_asian, "ece"), 6), "\n")
 p_asian <- plot_calibration(cal_asian, "Asian")
 print(p_asian)
 
 # OTHER
 cal_other <- calibration_table(taggedvf, "pred.oth", "OTHER")
+cat("ECE (Other):", round(attr(cal_other, "ece"), 6), "\n")
 p_other <- plot_calibration(cal_other, "Other")
 print(p_other)
