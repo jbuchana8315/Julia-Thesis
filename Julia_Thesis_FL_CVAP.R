@@ -33,8 +33,13 @@ setwd("E:/Users/Processed Data/")
 # load the 2022 FL voter file
 load("Voter Files/Non-LA Files/fl_voterfile_2022.rData") 
 
-# load the 2020 FL CVAP data
+# load the 2020 FL Census and CVAP data
+load("Census Data/fl_Census_2020.rData")
 load("Census Data/FL_2020_blockgroup_CVAP.RData")
+if(cvapPrior) {
+  fl_Census_2020$FL$block_group <- blockgroup_priors_cvap
+}
+  
 
 ###########################################
 ##           race tagging code           ##
@@ -54,9 +59,9 @@ names(vf)[names(vf) == "Voters_MiddleName"] <- 'middle'
 # run bisg at the block level 
 names(vf) <- gsub("c_", "c.", names(vf))
 taggedvf <- predict_race(vf, names.to.use = 'surname, first, middle', skip_bad_geos = TRUE, 
-                         census.geo = 'block_group', census.data = blockgroup_priors_cvap, year = "2020")
+                         census.geo = 'block_group', census.data = fl_Census_2020, year = "2020")
 
-##########################################
+####################################################################################
 ##           simple analytics           ##
 ##########################################
 
