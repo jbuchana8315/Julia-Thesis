@@ -78,6 +78,7 @@ vfRacialDistributions
 
 #predictive accuracy against MAP predictions
 taggedvf <- taggedvf %>%
+filter(!is.na(CountyEthnic.Description)) %>%
   mutate(
     ethnic_desc = toupper(CountyEthnic_Description),     
     
@@ -246,3 +247,4 @@ cal_other <- calibration_table(taggedvf, "pred.oth", "OTHER")
 cat("ECE (Other):", round(attr(cal_other, "ece"), 6), "\n")
 p_other <- plot_calibration(cal_other, "Other")
 print(p_other)
+
